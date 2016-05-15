@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from datetime import date
 import re
 
 from flask import (
@@ -8,6 +9,9 @@ from flask import (
     jsonify,
     request,
 )
+
+from balance.database import db_session
+from balance.models import Balance
 
 app = Flask(__name__)
 
@@ -35,4 +39,6 @@ def update_balance():
     if money is None:
         return make_error(
             'SMS Message did not contain any money. Message="%s"' % sms)
-    return jsonify(message=sms, money=balance)
+    db_session.add(Balance(date=date.today(), amount=money))
+    db_session.commit()
+    return jsonify(ok=True, message='Balance updated', amount=money)
