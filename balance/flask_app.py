@@ -18,7 +18,7 @@ def make_error(message, status_code=400):
     return response
 
 
-def find_balance(sms):
+def find_money(sms):
     """Extract the first mention of money from a string"""
     pattern = '£([\d]+\.[\d]{2})'
     matches = re.findall(pattern, sms)
@@ -27,12 +27,12 @@ def find_balance(sms):
 
 
 @app.route('/balance', methods=['POST'])
-def balance():
+def update_balance():
     sms = request.form.get('sms', None)
     if sms is None:
         return make_error('SMS Message missing')
-    balance = find_balance(sms)
-    if balance is None:
+    money = find_money(sms)
+    if money is None:
         return make_error(
             'SMS Message did not contain any money. Message="%s"' % sms)
     return jsonify(message=sms, money=balance)
