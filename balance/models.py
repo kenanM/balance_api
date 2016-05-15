@@ -14,3 +14,7 @@ class Balance(Base):
     id = Column(Integer, primary_key=True)
     date = Column(Date, nullable=False)
     amount = Column(Float, nullable=False)
+
+    def __init__(self, amount, date):
+        self.amount = amount
+        self.date = date
