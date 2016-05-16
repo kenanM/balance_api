@@ -53,9 +53,13 @@ def parse_date(date_str, fallback):
 @app.route('/balance', methods=['POST'])
 def update_balance():
     sms = request.form.get('sms', None)
-    date_ = parse_date(request.form.get('date'), date.today())
     if sms is None:
         return make_error('SMS Message missing')
+    date_ = parse_date(request.form.get('date'), date.today())
+    if Balance.query.filter_by(date=date_).one_or_none():
+        return make_error(
+            'An entry on this date already exists. Date="{0}"'
+            .format(date_.isoformat()))
     money = find_money(sms)
     if money is None:
         return make_error(
