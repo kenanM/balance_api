@@ -35,6 +35,7 @@ def make_error(message, status_code=400):
 
 def find_money(sms):
     """Extract the first mention of money from a string"""
+    sms = sms.replace(',', '')  # Remove thousand seperator
     pattern = '£([\d]+\.[\d]{2})'
     matches = re.findall(pattern, sms)
     if matches:
