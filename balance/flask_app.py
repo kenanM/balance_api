@@ -52,13 +52,14 @@ def parse_date(date_str, fallback):
 @app.route('/balance', methods=['POST'])
 def update_balance():
     sms = request.form.get('sms', None)
+    date_ = parse_date(request.form.get('date'), date.today())
     if sms is None:
         return make_error('SMS Message missing')
     money = find_money(sms)
     if money is None:
         return make_error(
             'SMS Message did not contain any money. Message="%s"' % sms)
-    db_session.add(Balance(date=date.today(), amount=money))
+    db_session.add(Balance(date=date_, amount=money))
     db_session.commit()
     return jsonify(ok=True, message='Balance updated', amount=money)
 
