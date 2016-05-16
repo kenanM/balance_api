@@ -1,12 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datetime import date
+import csv
+from datetime import (
+    date,
+    datetime,
+)
+from io import StringIO
 import re
 
 from flask import (
     Flask,
     jsonify,
+    make_response,
     request,
 )
 
@@ -30,6 +36,14 @@ def find_money(sms):
         return matches[0]
 
 
+def parse_date(date_str, fallback):
+    """Parse a date"""
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d').date()
+    except (TypeError, ValueError):
+        return fallback
+
+
 @app.route('/balance', methods=['POST'])
 def update_balance():
     sms = request.form.get('sms', None)
@@ -42,3 +56,24 @@ def update_balance():
     db_session.add(Balance(date=date.today(), amount=money))
     db_session.commit()
     return jsonify(ok=True, message='Balance updated', amount=money)
+
+
+@app.route('/balance', methods=['GET'])
+def get_balances():
+    start = parse_date(request.args.get('start'), date.min)
+    end = parse_date(request.args.get('end'), date.today())
+    balances = Balance.query.filter(Balance.date >= start, Balance.date <= end)
+    with StringIO() as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(['Date', 'Amount'])
+        for balance in balances:
+            writer.writerow((balance.date, balance.amount))
+        response = make_response(csv_file.getvalue())
+    filename = 'balances-from-{0}-to-{1}.csv'.format(
+        start.isoformat(),
+        end.isoformat(),
+    )
+    response.headers['Content-Disposition'] = (
+        'attachment; filename={0}'.format(filename)
+    )
+    return response
