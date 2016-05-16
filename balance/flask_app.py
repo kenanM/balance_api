@@ -22,6 +22,11 @@ from balance.models import Balance
 app = Flask(__name__)
 
 
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
+
+
 def make_error(message, status_code=400):
     response = jsonify(status=status_code, message=message)
     response.status_code = status_code
